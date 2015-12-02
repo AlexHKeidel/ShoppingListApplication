@@ -2,12 +2,17 @@ package com.keidelgmail.hans.alexander.shoppinglistapplication;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Typeface;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -25,6 +30,7 @@ public class CustomExpandableListAdapter extends BaseExpandableListAdapter{
     private Activity context;
     private List<String> items;
     private Map<String, List<String>> itemCategories;
+    private String m_Text; //used for adding content to the list via an on-click listener
 
     public CustomExpandableListAdapter(Activity context, List<String> items, Map<String, List<String>> itemCategories){
         this.context = context;
@@ -113,7 +119,7 @@ public class CustomExpandableListAdapter extends BaseExpandableListAdapter{
      * underlying data.
      *
      * @return whether or not the same ID always refers to the same object
-     * @see Adapter#hasStableIds()
+     * @see CustomExpandableListAdapter#hasStableIds()
      */
     @Override
     public boolean hasStableIds() {
@@ -139,8 +145,8 @@ public class CustomExpandableListAdapter extends BaseExpandableListAdapter{
      * @return the View corresponding to the group at the specified position
      */
     @Override
-    public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
-        String itemName = (String) getGroup(groupPosition);
+    public View getGroupView(final int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
+        final String itemName = (String) getGroup(groupPosition);
         if (convertView == null) {
             LayoutInflater infalInflater = (LayoutInflater) context.getSystemService(context.LAYOUT_INFLATER_SERVICE);
             convertView = infalInflater.inflate(R.layout.group_item, null);
@@ -150,10 +156,56 @@ public class CustomExpandableListAdapter extends BaseExpandableListAdapter{
         item.setTypeface(null, Typeface.BOLD);
         item.setText(itemName);
 
+        ImageView addButton = (ImageView) convertView.findViewById(R.id.categoryAddButton);
+        addButton.setOnClickListener(new View.OnClickListener() {
+
+            //see http://stackoverflow.com/questions/10903754/input-text-dialog-android for refernce
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                builder.setTitle("Add a net item to " + itemName + "?");
+
+                // Set up the input
+                final EditText input = new EditText(context);
+                // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+                input.setInputType(InputType.TYPE_CLASS_TEXT);
+
+                //http://stackoverflow.com/questions/5105354/how-to-show-soft-keyboard-when-edittext-is-focused
+                //force the keyboard to start showing up
+                input.requestFocus();
+                final InputMethodManager myManager = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+                myManager.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
+                myManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY); // this seems to make it work!
+                builder.setView(input);
+
+
+                // Set up the buttons
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        m_Text = input.getText().toString(); //get the string from the text box
+                        itemCategories.get(items.get(groupPosition)).add(m_Text); //add a new item to the end of the list
+                        notifyDataSetChanged(); //notify that the data has changed
+                        myManager.hideSoftInputFromWindow(input.getWindowToken(), 0); //get rid of the keyboard again
+                    }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        myManager.hideSoftInputFromWindow(input.getWindowToken(), 0); //get rid of the keyboard again
+                        dialog.cancel();
+                    }
+                });
+
+                builder.show();
+            }
+        });
+
         TextView itemCounter = (TextView) convertView.findViewById(R.id.categoryItemCount);
         itemCounter.setText("*"+getChildrenCount(groupPosition)); //make sure not to try and use item ID
         return convertView;
     }
+
 
     /**
      * Gets a View that displays the data for the given child within the given
@@ -185,8 +237,8 @@ public class CustomExpandableListAdapter extends BaseExpandableListAdapter{
         TextView itemTextView = (TextView) convertView.findViewById(R.id.shoppingItem);
         itemTextView.setText(item);
 
-        ImageView delete = (ImageView) convertView.findViewById(R.id.deleteIcon);
-        delete.setOnClickListener(new View.OnClickListener() {
+        ImageView deleteButton = (ImageView) convertView.findViewById(R.id.deleteIcon);
+        deleteButton.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View v) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -210,7 +262,7 @@ public class CustomExpandableListAdapter extends BaseExpandableListAdapter{
                 AlertDialog alertDialog = builder.create();
                 alertDialog.show();
             }
-        });
+        }); //end of onClick
 
         return convertView;
     }

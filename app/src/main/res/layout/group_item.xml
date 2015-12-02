@@ -15,4 +15,12 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:textSize="25dp"/>
+
+    <ImageView
+        android:id="@+id/categoryAddButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/abc_btn_check_material"
+        android:layout_toLeftOf="@id/categoryItemCount"/>
+
 </RelativeLayout>

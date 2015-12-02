@@ -24,7 +24,7 @@ public class MainActivity extends ActionBarActivity {
 
 
     private ExpandableListView myListView;
-    //private CustomExpandableListAdapter myAdapter; //using custom class
+    private CustomExpandableListAdapter myAdapter; //using custom class
     private TextView exampleTextView;
 
     private List<String> itemsList;
@@ -67,23 +67,24 @@ public class MainActivity extends ActionBarActivity {
      */
     private void initialiseList(){
         myListView = (ExpandableListView) findViewById(R.id.myShoppingList); //find the expandable list view and set it so we can change it
-        createExampleItemList();
-        final ExpandableListAdapter myAdapter = new CustomExpandableListAdapter(this, itemsList, itemCollections);
+        createExampleItemList(); //populate with pre-set data
+        myAdapter = new CustomExpandableListAdapter(this, itemsList, itemCollections); //create the adapter for the list, holding all the data
         myListView.setAdapter(myAdapter);
         myListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
             public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
-                final String selected = (String) myAdapter.getChild(
-                        groupPosition, childPosition);
-                Toast.makeText(getBaseContext(), selected, Toast.LENGTH_LONG)
-                        .show();
-
+                final String selected = (String) myAdapter.getChild(groupPosition, childPosition);
+                Toast.makeText(getBaseContext(), selected, Toast.LENGTH_LONG).show();
                 return true;
             }
         });
-
     }
 
+
+
+    /**
+     * Create an example list with different categories and sub-items
+     */
     private void createExampleItemList(){
 
         itemsList = new ArrayList<String>();
