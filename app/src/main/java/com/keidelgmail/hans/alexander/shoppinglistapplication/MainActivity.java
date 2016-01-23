@@ -1,5 +1,9 @@
 package com.keidelgmail.hans.alexander.shoppinglistapplication;
 
+import android.app.IntentService;
+import android.content.ContentValues;
+import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -26,9 +30,11 @@ public class MainActivity extends ActionBarActivity {
     private ExpandableListView myListView;
     private CustomExpandableListAdapter myAdapter; //using custom class
     private TextView exampleTextView;
-
     private List<String> itemsList;
     private Map<String, List<String>> itemCollections;
+
+    private SQLiteDatabase myDb;
+    private MyDatabaseHelper myDbHelper;
 
 
     @Override
@@ -65,7 +71,7 @@ public class MainActivity extends ActionBarActivity {
     /**
      * initialise the ExpandableListView on this activity
      */
-    private void initialiseList(){
+    private void initialiseList() {
         myListView = (ExpandableListView) findViewById(R.id.myShoppingList); //find the expandable list view and set it so we can change it
         createExampleItemList(); //populate with pre-set data
         myAdapter = new CustomExpandableListAdapter(this, itemsList, itemCollections); //create the adapter for the list, holding all the data
@@ -81,11 +87,10 @@ public class MainActivity extends ActionBarActivity {
     }
 
 
-
     /**
      * Create an example list with different categories and sub-items
      */
-    private void createExampleItemList(){
+    private void createExampleItemList() {
 
         itemsList = new ArrayList<String>();
 
@@ -108,5 +113,28 @@ public class MainActivity extends ActionBarActivity {
         itemCollections.put(itemsList.get(0), Meats);
         itemCollections.put(itemsList.get(1), Vegetables);
         itemCollections.put(itemsList.get(2), Others);
+    }
+
+    private boolean setupDatabase() {
+        try {
+            myDbHelper = new MyDatabaseHelper(getBaseContext());
+
+            myDb = myDbHelper.getWritableDatabase(); //Gets the data repository in write mode
+
+            //Create a new map of values, where column names are keys
+            ContentValues values = new ContentValues();
+            values.put(DatabaseContract.CategoryFeeder.CATEGORIES_COLUMN, "Vegetables");
+
+            //Insert the new row, returning the primary key value of the new row
+            long newRowId = myDb.insert(DatabaseContract.CategoryFeeder.TABLE_NAME, DatabaseContract.CategoryFeeder.CATEGORIES_COLUMN, values);
+            System.out.println("New Row ID = " + newRowId);
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return false;
+    }
+
+
 }
