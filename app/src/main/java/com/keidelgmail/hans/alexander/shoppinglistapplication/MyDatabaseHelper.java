@@ -13,8 +13,8 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
     private static final String TEXT_TYPE = " TEXT";
     private static final String INTEGER_TYPE = " INTEGER";
     private static final String COMMA_SEP = ",";
-    private static final String SQL_CREATE_CATEGORY_ENTRIES = "CREATE TABLE " + DatabaseContract.CategoryFeeder.TABLE_NAME + " (" + DatabaseContract.CategoryFeeder._ID + " INTEGER PRIMARY KEY," + DatabaseContract.CategoryFeeder.CATEGORIES_COLUMN + TEXT_TYPE + " );";
-    private static final String SQL_CREATE_ITEM_ENTRIES = "CREATE TABLE " + DatabaseContract.ItemTableFeeder.TABLE_NAME + " (" + DatabaseContract.ItemTableFeeder._ID +  " INTEGER PRIMARY KEY," + DatabaseContract.ItemTableFeeder.ITEM_NAME + TEXT_TYPE + COMMA_SEP + DatabaseContract.ItemTableFeeder.ITEM_QUANTITY + INTEGER_TYPE + COMMA_SEP + "FOREIGN KEY ( " + DatabaseContract.ItemTableFeeder.CATEGORY_ID + ") REFERENCES " + DatabaseContract.CategoryFeeder.TABLE_NAME + " (" + DatabaseContract.CategoryFeeder._ID + "));";
+    private static final String SQL_CREATE_CATEGORY_ENTRIES = "CREATE TABLE " + DatabaseContract.CategoryFeeder.TABLE_NAME + " (" + DatabaseContract.CategoryFeeder._ID + " INTEGER PRIMARY KEY," + DatabaseContract.CategoryFeeder.CATEGORIES_COLUMN + TEXT_TYPE + " UNIQUE);";
+    private static final String SQL_CREATE_ITEM_ENTRIES = "CREATE TABLE " + DatabaseContract.ItemTableFeeder.TABLE_NAME + " (" + DatabaseContract.ItemTableFeeder._ID +  " INTEGER PRIMARY KEY," + DatabaseContract.ItemTableFeeder.ITEM_NAME + TEXT_TYPE + COMMA_SEP + DatabaseContract.ItemTableFeeder.ITEM_QUANTITY + INTEGER_TYPE + COMMA_SEP + DatabaseContract.ItemTableFeeder.CATEGORY_ID + " INTEGER," + " FOREIGN KEY ( " + DatabaseContract.ItemTableFeeder.CATEGORY_ID + ") REFERENCES " + DatabaseContract.CategoryFeeder.TABLE_NAME + " (" + DatabaseContract.CategoryFeeder._ID + "));";
     private static final String SQL_DELETE_ENTRIES = "DROP TABLE IF EXISTS " + DatabaseContract.CategoryFeeder.TABLE_NAME + COMMA_SEP + DatabaseContract.ItemTableFeeder.TABLE_NAME;
 
     private static int DATABASE_VERSION = 1;

@@ -3,9 +3,11 @@ package com.keidelgmail.hans.alexander.shoppinglistapplication;
 import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,6 +16,7 @@ import android.widget.ExpandableListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,7 +36,7 @@ public class MainActivity extends ActionBarActivity {
     private List<String> itemsList;
     private Map<String, List<String>> itemCollections;
 
-    private SQLiteDatabase myDb;
+    private SQLiteDatabase myDb = null;
     private MyDatabaseHelper myDbHelper;
 
 
@@ -41,7 +44,8 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        initialiseList();
+        //initialiseList();
+        setupDatabase();
     }
 
 
@@ -115,21 +119,71 @@ public class MainActivity extends ActionBarActivity {
         itemCollections.put(itemsList.get(2), Others);
     }
 
+    private boolean checkIfDbExists(){
+        try {
+            File dbcheck = getApplicationContext().getDatabasePath("Shopping.db");
+            if (dbcheck.exists()) {
+                System.out.println("DB already exists.");
+                Toast.makeText(this, "DB already exists", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+        } catch (NullPointerException nex) {
+            System.out.println("Nullpointer when trying to find the existing db file");
+            nex.printStackTrace();
+            return false;
+        }
+        return false; //db does not exist
+    }
+
     private boolean setupDatabase() {
         try {
+            if(checkIfDbExists()){
+                return true;
+            }
+            System.out.println("DB will be created.");
+            Toast.makeText(this, "DB will be created.", Toast.LENGTH_LONG).show();
             myDbHelper = new MyDatabaseHelper(getBaseContext());
-
             myDb = myDbHelper.getWritableDatabase(); //Gets the data repository in write mode
-
             //Create a new map of values, where column names are keys
-            ContentValues values = new ContentValues();
-            values.put(DatabaseContract.CategoryFeeder.CATEGORIES_COLUMN, "Vegetables");
+            ContentValues categoryValues = new ContentValues();
+            categoryValues.put(DatabaseContract.CategoryFeeder.CATEGORIES_COLUMN, "Vegetables");
+            categoryValues.put(DatabaseContract.CategoryFeeder.CATEGORIES_COLUMN, "Meats");
+            categoryValues.put(DatabaseContract.CategoryFeeder.CATEGORIES_COLUMN, "Others");
 
-            //Insert the new row, returning the primary key value of the new row
-            long newRowId = myDb.insert(DatabaseContract.CategoryFeeder.TABLE_NAME, DatabaseContract.CategoryFeeder.CATEGORIES_COLUMN, values);
-            System.out.println("New Row ID = " + newRowId);
+            try {
+                //Insert the new row, returning the primary key value of the new row
+                myDb.insert(DatabaseContract.CategoryFeeder.TABLE_NAME, null, categoryValues);
+            } catch (android.database.sqlite.SQLiteConstraintException ex) {
+                System.out.println("Tried adding an existing row to a unique table");
+                ex.printStackTrace();
+            }
+            ContentValues itemValues = new ContentValues();
+            String query = "SELECT " + DatabaseContract.CategoryFeeder.CATEGORIES_COLUMN + " FROM " + DatabaseContract.CategoryFeeder.TABLE_NAME + " WHERE " + DatabaseContract.CategoryFeeder.CATEGORIES_COLUMN + " = ?";
+            System.out.println(query);
+            Cursor c = myDb.rawQuery(query, new String[]{"Meats"});
+            if (c != null && c.moveToFirst()) {
+                System.out.println(c.getString(1));
+            }
+            c.moveToFirst();
+            itemValues.put(DatabaseContract.ItemTableFeeder.CATEGORY_ID, "Meats");
+            itemValues.put(DatabaseContract.ItemTableFeeder.ITEM_NAME, "Beef");
+            itemValues.put(DatabaseContract.ItemTableFeeder.ITEM_QUANTITY, 2);
+            myDb.insert(DatabaseContract.ItemTableFeeder.TABLE_NAME, null, itemValues);
+            c.close();
+
+            String testquery = "SELECT " + DatabaseContract.ItemTableFeeder.ITEM_NAME + " FROM " + DatabaseContract.ItemTableFeeder.TABLE_NAME + " WHERE " + DatabaseContract.ItemTableFeeder.ITEM_NAME + " = 'Beef'";
+            System.out.println(testquery);
+            Cursor c1 = myDb.rawQuery(testquery, null);
+            if(c1 != null && c1.moveToFirst()){
+                //Toast.makeText(this, "Cursor c1 count: " + c1.getCount(), Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Query for Beef returns: " + c1.getString(1), Toast.LENGTH_LONG).show();
+            }
+
+            c1.close();
+
+            //System.out.println("New Row ID = " + newRowId);
+            //Toast.makeText(this, "New Row ID = " + newRowId, Toast.LENGTH_SHORT).show();
             return true;
-
         } catch (Exception e) {
             e.printStackTrace();
         }

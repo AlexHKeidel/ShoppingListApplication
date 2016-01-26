@@ -15,14 +15,14 @@ public final class DatabaseContract {
         BaseColumns interface gives this class a primary key field called _ID
     */
     public static abstract class CategoryFeeder implements BaseColumns{
-        public static final String TABLE_NAME = "CategoryTable";
-        public static final String CATEGORIES_COLUMN = "Category";
+        public static final String TABLE_NAME = "categories";
+        public static final String CATEGORIES_COLUMN = "name";
     }
 
     public static abstract  class ItemTableFeeder implements BaseColumns {
-        public static final String TABLE_NAME = "ItemTable";
-        public static final String CATEGORY_ID = "CategoryID"; //Foreign key
-        public static final String ITEM_NAME = "Item";
-        public static final String ITEM_QUANTITY = "Quantity";
+        public static final String TABLE_NAME = "items";
+        public static final String CATEGORY_ID = "categoryid"; //Foreign key
+        public static final String ITEM_NAME = "name";
+        public static final String ITEM_QUANTITY = "quantity";
     }
 }
